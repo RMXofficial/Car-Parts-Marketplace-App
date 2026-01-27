@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure port for Railway deployment
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+var port = Environment.GetEnvironmentVariable("PORT") ?? "80";
 Console.WriteLine($"=== PORT Configuration ===");
 Console.WriteLine($"PORT env variable: {Environment.GetEnvironmentVariable("PORT") ?? "NOT SET"}");
 Console.WriteLine($"ASPNETCORE_URLS env: {Environment.GetEnvironmentVariable("ASPNETCORE_URLS") ?? "NOT SET"}");
