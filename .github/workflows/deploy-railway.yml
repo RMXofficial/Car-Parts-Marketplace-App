@@ -1,8 +1,11 @@
-name: Deploy to Railway
+name: Deploy to Railway (Manual)
 
 on:
-  push:
-    branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for deployment'
+        required: false
 
 jobs:
   deploy:
