@@ -6,6 +6,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Configure port for Railway deployment
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+Console.WriteLine($"=== PORT Configuration ===");
+Console.WriteLine($"PORT env variable: {Environment.GetEnvironmentVariable("PORT") ?? "NOT SET"}");
+Console.WriteLine($"Using port: {port}");
+Console.WriteLine($"Binding to: http://0.0.0.0:{port}");
+Console.WriteLine($"========================");
 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
 // Add services to the container.
