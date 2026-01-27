@@ -1,0 +1,6 @@
+[build]
+builder = "dockerfile"
+dockerfile = "Web/Dockerfile"
+
+[deploy]
+startCommand = "dotnet Web.dll"
