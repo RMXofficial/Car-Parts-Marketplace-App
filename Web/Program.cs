@@ -8,10 +8,23 @@ var builder = WebApplication.CreateBuilder(args);
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 Console.WriteLine($"=== PORT Configuration ===");
 Console.WriteLine($"PORT env variable: {Environment.GetEnvironmentVariable("PORT") ?? "NOT SET"}");
+Console.WriteLine($"ASPNETCORE_URLS env: {Environment.GetEnvironmentVariable("ASPNETCORE_URLS") ?? "NOT SET"}");
 Console.WriteLine($"Using port: {port}");
-Console.WriteLine($"Binding to: http://0.0.0.0:{port}");
+Console.WriteLine($"All environment variables:");
+foreach (System.Collections.DictionaryEntry env in Environment.GetEnvironmentVariables())
+{
+    if (env.Key.ToString().Contains("PORT") || env.Key.ToString().Contains("URL") || env.Key.ToString().Contains("HOST"))
+    {
+        Console.WriteLine($"  {env.Key}: {env.Value}");
+    }
+}
 Console.WriteLine($"========================");
-builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
+// Let ASP.NET Core handle the port via ASPNETCORE_URLS if not already set
+if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ASPNETCORE_URLS")))
+{
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+}
 
 // Add services to the container.
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
