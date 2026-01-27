@@ -26,22 +26,31 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>();
     try
     {
+        logger.LogInformation("Attempting to connect to database...");
         var context = services.GetRequiredService<Infrastructure.Data.ApplicationDbContext>();
-        
+
+        // Test database connection
+        await context.Database.CanConnectAsync();
+        logger.LogInformation("Database connection successful!");
+
         // Enable foreign keys for SQLite before any operations
         if (context.Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
         {
             await context.Database.ExecuteSqlRawAsync("PRAGMA foreign_keys = ON;");
         }
-        
+
+        logger.LogInformation("Starting database seeding...");
         await Infrastructure.Data.DatabaseSeeder.SeedAsync(context, services);
+        logger.LogInformation("Database seeding completed successfully!");
     }
     catch (Exception ex)
     {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while seeding the database.");
+        logger.LogError(ex, "An error occurred while seeding the database. Application will continue but may not function properly.");
+        logger.LogError("Connection String (masked): {ConnectionString}",
+            builder.Configuration.GetConnectionString("DefaultConnection")?.Substring(0, Math.Min(50, builder.Configuration.GetConnectionString("DefaultConnection")?.Length ?? 0)));
     }
 }
 
