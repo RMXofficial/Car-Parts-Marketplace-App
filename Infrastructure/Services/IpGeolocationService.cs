@@ -22,7 +22,8 @@ public class IpGeolocationService : IGeolocationService
     public async Task<string> GetCountryCodeAsync(string ipAddress)
     {
         var data = await GetGeolocationDataAsync(ipAddress);
-        return data?.CountryCode2 ?? "US"; // Default to US (English) if API fails or unknown
+        // Try both country_code2 and country_code
+        return data?.CountryCode2 ?? data?.CountryCode ?? "US"; // Default to US (English) if API fails or unknown
     }
 
     public async Task<string> GetCurrencyCodeAsync(string ipAddress)
@@ -59,8 +60,9 @@ public class IpGeolocationService : IGeolocationService
 
             var response = await _httpClient.GetFromJsonAsync<IpGeolocationResponse>(url);
 
-            _logger.LogInformation("Geolocation API response for IP {IP}: CountryCode={CountryCode}, Currency={Currency}",
+            _logger.LogInformation("Geolocation API response for IP {IP}: CountryCode={CountryCode}, CountryCode2={CountryCode2}, Currency={Currency}",
                 ipAddress,
+                response?.CountryCode ?? "(null)",
                 response?.CountryCode2 ?? "(null)",
                 response?.Currency?.Code ?? "(null)");
 
@@ -75,9 +77,12 @@ public class IpGeolocationService : IGeolocationService
 
     private class IpGeolocationResponse
     {
+        [System.Text.Json.Serialization.JsonPropertyName("country_code")]
+        public string? CountryCode { get; set; }
+
         [System.Text.Json.Serialization.JsonPropertyName("country_code2")]
         public string? CountryCode2 { get; set; }
-        
+
         [System.Text.Json.Serialization.JsonPropertyName("currency")]
         public CurrencyInfo? Currency { get; set; }
     }
