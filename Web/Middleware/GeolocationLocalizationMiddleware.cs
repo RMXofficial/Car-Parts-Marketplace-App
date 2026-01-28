@@ -25,8 +25,12 @@ public class GeolocationLocalizationMiddleware
         {
             try
             {
-                var ip = context.Connection.RemoteIpAddress?.ToString();
-                _logger.LogInformation("Geolocation Middleware - IP: {IP}", ip ?? "(null)");
+                // Get real client IP from X-Forwarded-For header (for proxies like Railway)
+                var ip = context.Request.Headers["X-Forwarded-For"].FirstOrDefault()?.Split(',').FirstOrDefault()?.Trim()
+                         ?? context.Connection.RemoteIpAddress?.ToString();
+                _logger.LogInformation("Geolocation Middleware - IP: {IP} (X-Forwarded-For: {XFF})",
+                    ip ?? "(null)",
+                    context.Request.Headers["X-Forwarded-For"].FirstOrDefault() ?? "(none)");
 
                 var countryCode = await geoService.GetCountryCodeAsync(ip ?? "");
                 _logger.LogInformation("Geolocation Middleware - Country: {Country}", countryCode);
