@@ -10,7 +10,7 @@ public class IpGeolocationService : IGeolocationService
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
     private readonly ILogger<IpGeolocationService> _logger;
-    private const string BaseUrl = "https://api.ipgeolocation.io/v2/ipgeo";
+    private const string BaseUrl = "https://api.ipgeolocation.io/ipgeo"; // v1 API, not v2
 
     public IpGeolocationService(HttpClient httpClient, IConfiguration configuration, ILogger<IpGeolocationService> logger)
     {
