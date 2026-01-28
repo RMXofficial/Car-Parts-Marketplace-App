@@ -10,7 +10,8 @@ public class IpGeolocationService : IGeolocationService
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
     private readonly ILogger<IpGeolocationService> _logger;
-    private const string BaseUrl = "https://api.ipgeolocation.io/ipgeo"; // v1 API, not v2
+    // Using ip-api.com which is free and doesn't require an API key
+    private const string BaseUrl = "http://ip-api.com/json";
 
     public IpGeolocationService(HttpClient httpClient, IConfiguration configuration, ILogger<IpGeolocationService> logger)
     {
@@ -29,42 +30,33 @@ public class IpGeolocationService : IGeolocationService
     public async Task<string> GetCurrencyCodeAsync(string ipAddress)
     {
         var data = await GetGeolocationDataAsync(ipAddress);
-        return data?.Currency?.Code ?? "MKD"; // Default to MKD if unknown
+        return data?.CurrencyCode ?? data?.Currency?.Code ?? "MKD"; // Default to MKD if unknown
     }
 
     private async Task<IpGeolocationResponse?> GetGeolocationDataAsync(string ipAddress)
     {
         try
         {
-            var apiKey = _configuration["GeolocationApi:ApiKey"] ?? "c84a2460750b4ba6b91ece83cce60d3f";
-            
-            // If checking localhost, use an empty IP to let the API detect the caller's IP
-            // or use a specific IP for testing. 
-            // The API documentation says: "When this endpoint is queried without an IP address, it returns the geolocation information of the device/client which is calling it."
-            // But since this runs on the server, we might want to pass the user's IP.
-            // For now, let's assume we pass the IP. 
-            
+            // ip-api.com doesn't require an API key
             string url;
             if (string.IsNullOrEmpty(ipAddress) || ipAddress == "::1" || ipAddress == "127.0.0.1")
             {
-                // Localhost - The API call from the server will return the Server's location.
-                // In development, this is fine.
-                 url = $"{BaseUrl}?apiKey={apiKey}";
+                // Localhost - use a default IP or skip geolocation
+                 url = $"{BaseUrl}";
             }
             else
             {
-                 url = $"{BaseUrl}?apiKey={apiKey}&ip={ipAddress}";
+                 url = $"{BaseUrl}/{ipAddress}";
             }
 
-            _logger.LogInformation("Calling geolocation API: {Url}", url.Replace(apiKey, "***"));
+            _logger.LogInformation("Calling geolocation API: {Url}", url);
 
             var response = await _httpClient.GetFromJsonAsync<IpGeolocationResponse>(url);
 
-            _logger.LogInformation("Geolocation API response for IP {IP}: CountryCode={CountryCode}, CountryCode2={CountryCode2}, Currency={Currency}",
+            _logger.LogInformation("Geolocation API response for IP {IP}: CountryCode={CountryCode}, Currency={Currency}",
                 ipAddress,
                 response?.CountryCode ?? "(null)",
-                response?.CountryCode2 ?? "(null)",
-                response?.Currency?.Code ?? "(null)");
+                response?.CurrencyCode ?? response?.Currency?.Code ?? "(null)");
 
             return response;
         }
@@ -77,13 +69,18 @@ public class IpGeolocationService : IGeolocationService
 
     private class IpGeolocationResponse
     {
-        [System.Text.Json.Serialization.JsonPropertyName("country_code")]
+        // ip-api.com returns "countryCode" (e.g., "MK" for Macedonia)
+        [System.Text.Json.Serialization.JsonPropertyName("countryCode")]
         public string? CountryCode { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("country_code2")]
         public string? CountryCode2 { get; set; }
 
+        // ip-api.com returns "currency" as a simple string
         [System.Text.Json.Serialization.JsonPropertyName("currency")]
+        public string? CurrencyCode { get; set; }
+
+        // Also keep the old nested structure for compatibility
         public CurrencyInfo? Currency { get; set; }
     }
 
