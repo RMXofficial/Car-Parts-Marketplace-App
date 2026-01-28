@@ -8,10 +8,9 @@ public class CarPricingService : ICarPricingService
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<CarPricingService> _logger;
-    private const decimal VAT_RATE = 0.18m; // 18% VAT for North Macedonia
+    private const decimal VAT_RATE = 0.18m;
     private const string EXCHANGE_RATE_API = "https://api.exchangerate-api.com/v4/latest/USD";
 
-    // Cache for exchange rates (simple in-memory cache)
     private static decimal? _cachedExchangeRate;
     private static DateTime? _cacheExpiry;
 
@@ -31,16 +30,12 @@ public class CarPricingService : ICarPricingService
     {
         try
         {
-            // Get exchange rate (USD to MKD)
             decimal exchangeRate = await GetExchangeRateAsync();
 
-            // Convert to MKD
             decimal priceInMKD = originalPrice * exchangeRate;
 
-            // Calculate tax (18% VAT)
             decimal taxAmount = priceInMKD * VAT_RATE;
 
-            // Total with tax
             decimal totalPriceWithTax = priceInMKD + taxAmount;
 
             return new PriceTransformationResult
@@ -56,7 +51,6 @@ public class CarPricingService : ICarPricingService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error transforming price to MKD");
-            // Fallback: use approximate rate if API fails (1 USD ≈ 57 MKD)
             decimal fallbackRate = 57m;
             decimal priceInMKD = originalPrice * fallbackRate;
             decimal taxAmount = priceInMKD * VAT_RATE;
@@ -75,7 +69,6 @@ public class CarPricingService : ICarPricingService
 
     private async Task<decimal> GetExchangeRateAsync()
     {
-        // Check cache first
         if (_cachedExchangeRate.HasValue && _cacheExpiry.HasValue && DateTime.UtcNow < _cacheExpiry.Value)
         {
             return _cachedExchangeRate.Value;
@@ -84,11 +77,11 @@ public class CarPricingService : ICarPricingService
         try
         {
             var response = await _httpClient.GetFromJsonAsync<ExchangeRateResponse>(EXCHANGE_RATE_API);
-            
+
             if (response?.Rates != null && response.Rates.TryGetValue("MKD", out var rate))
             {
                 _cachedExchangeRate = rate;
-                _cacheExpiry = DateTime.UtcNow.AddHours(1); // Cache for 1 hour
+                _cacheExpiry = DateTime.UtcNow.AddHours(1);
                 return rate;
             }
         }
@@ -97,8 +90,7 @@ public class CarPricingService : ICarPricingService
             _logger.LogWarning(ex, "Failed to fetch exchange rate from API, using fallback");
         }
 
-        // Fallback rate
-        return 57m; // Approximate 1 USD = 57 MKD
+        return 57m;
     }
 
     private class ExchangeRateResponse

@@ -12,22 +12,17 @@ public static class DatabaseSeeder
 {
     public static async Task SeedAsync(ApplicationDbContext context, IServiceProvider serviceProvider)
     {
-        // Get logger for the seeding process
         var logger = serviceProvider.GetRequiredService<ILogger<ApplicationDbContext>>();
-        
-        // Ensure database is created
+
         await context.Database.EnsureCreatedAsync();
 
         var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-        // Seed Admin role (admin users are created only via database – add UserId to UserRoles with Admin role)
         if (!await roleManager.RoleExistsAsync("Admin"))
         {
             await roleManager.CreateAsync(new IdentityRole("Admin"));
         }
-
-        // Seed Admin User
         var adminEmail = "admin@carparts.com";
         var adminUser = await userManager.FindByEmailAsync(adminEmail);
         if (adminUser == null)
@@ -58,7 +53,6 @@ public static class DatabaseSeeder
             logger.LogInformation("Admin user already exists");
         }
 
-        // Seed Categories (only if none exist)
         if (!await context.Categories.AnyAsync())
         {
             var categories = new[]
@@ -72,7 +66,6 @@ public static class DatabaseSeeder
             await context.SaveChangesAsync();
         }
 
-        // Seed test user
         var testUserEmail = "test@carparts.com";
         var testUser = await userManager.FindByEmailAsync(testUserEmail);
         if (testUser == null)
@@ -104,7 +97,6 @@ public static class DatabaseSeeder
             logger.LogInformation("Test user already exists");
         }
 
-        // Seed listings: ensure we have 30 listings total
         var existingCount = await context.Listings.CountAsync();
         if (existingCount < 30)
         {
@@ -117,7 +109,7 @@ public static class DatabaseSeeder
                 var model = categoryId == 3 ? $"PartModel{i % 20}" : $"Model{i % 20}";
                 var year = 2000 + (i % 25);
                 var price = categoryId == 3 ? 10 + i * 2 : 1000 + i * 150;
-                var imageIndex = ((i - 1) % 10) + 1; // reuse up to 10 images
+                var imageIndex = ((i - 1) % 10) + 1;
                 var imageUrl = $"/images/listings/listing{imageIndex}.jpg";
 
                 listingsList.Add(new Listing

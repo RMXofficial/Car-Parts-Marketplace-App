@@ -29,7 +29,6 @@ public class GetListingByIdQueryHandler : IRequestHandler<GetListingByIdQuery, L
 
         var listingDto = _mapper.Map<ListingDto>(listing);
 
-        // Load seller information
         var seller = await _userManager.FindByIdAsync(listing.UserId);
         if (seller != null)
         {

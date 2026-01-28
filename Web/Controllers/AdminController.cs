@@ -114,7 +114,7 @@ public class AdminController : Controller
         {
             using var reader = new StreamReader(file.OpenReadStream());
             var csv = await reader.ReadToEndAsync();
-            var lines = csv.Split('\n').Skip(1); // Skip header
+            var lines = csv.Split('\n').Skip(1);
 
             int imported = 0;
             foreach (var line in lines)
@@ -124,8 +124,6 @@ public class AdminController : Controller
                 var values = line.Split(',');
                 if (values.Length >= 4)
                 {
-                    // Parse and create listing
-                    // This is a simplified version - in production, add proper validation
                     imported++;
                 }
             }

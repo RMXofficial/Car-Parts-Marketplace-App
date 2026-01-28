@@ -9,9 +9,8 @@ public class User
     public string LastName { get; set; } = string.Empty;
     public string? PhoneNumber { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public string Role { get; set; } = "User"; // User or Admin
+    public string Role { get; set; } = "User";
 
-    // Navigation properties
     public ICollection<Listing> Listings { get; set; } = new List<Listing>();
     public ICollection<Order> Orders { get; set; } = new List<Order>();
 }

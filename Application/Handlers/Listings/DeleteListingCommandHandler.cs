@@ -23,7 +23,6 @@ public class DeleteListingCommandHandler : IRequestHandler<DeleteListingCommand,
         if (listing == null)
             return false;
 
-        // Check if listing is part of any orders
         var hasOrders = await _context.OrderItems.AnyAsync(oi => oi.ListingId == request.Id, cancellationToken);
         if (hasOrders)
         {

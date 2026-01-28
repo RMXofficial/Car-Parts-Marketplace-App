@@ -9,7 +9,6 @@ public class OrderItem
     public decimal UnitPrice { get; set; }
     public decimal Subtotal { get; set; }
 
-    // Navigation properties
     public Order Order { get; set; } = null!;
     public Listing Listing { get; set; } = null!;
 }

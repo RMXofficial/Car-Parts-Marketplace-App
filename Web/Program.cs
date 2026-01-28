@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure port for Railway deployment
 var port = Environment.GetEnvironmentVariable("PORT") ?? "80";
 Console.WriteLine($"=== PORT Configuration ===");
 Console.WriteLine($"PORT env variable: {Environment.GetEnvironmentVariable("PORT") ?? "NOT SET"}");
@@ -20,27 +19,22 @@ foreach (System.Collections.DictionaryEntry env in Environment.GetEnvironmentVar
 }
 Console.WriteLine($"========================");
 
-// Let ASP.NET Core handle the port via ASPNETCORE_URLS if not already set
 if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ASPNETCORE_URLS")))
 {
     builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 }
 
-// Add services to the container.
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 builder.Services.AddControllersWithViews()
     .AddViewLocalization(Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat.Suffix)
     .AddDataAnnotationsLocalization();
 
-// Add Infrastructure services (Database, Repositories, External Services)
 builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
 
-// Add Application services (MediatR, AutoMapper)
 builder.Services.AddApplication();
 
 var app = builder.Build();
 
-// Seed database on startup and enable foreign keys for SQLite
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -50,11 +44,9 @@ using (var scope = app.Services.CreateScope())
         logger.LogInformation("Attempting to connect to database...");
         var context = services.GetRequiredService<Infrastructure.Data.ApplicationDbContext>();
 
-        // Test database connection
         await context.Database.CanConnectAsync();
         logger.LogInformation("Database connection successful!");
 
-        // Enable foreign keys for SQLite before any operations
         if (context.Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
         {
             await context.Database.ExecuteSqlRawAsync("PRAGMA foreign_keys = ON;");
@@ -78,7 +70,6 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
 }
 
-// Localization
 var supportedCultures = new[] { "en-US", "mk-MK" };
 var localizationOptions = new RequestLocalizationOptions()
     .SetDefaultCulture("en-US")
@@ -95,7 +86,6 @@ app.UseAuthorization();
 
 app.MapStaticAssets();
 
-// Handle migration command
 if (args.Contains("--migrate-admin"))
 {
     using (var scope = app.Services.CreateScope())
@@ -109,7 +99,6 @@ if (args.Contains("--migrate-admin"))
         var user = await userManager.FindByEmailAsync(email);
         if (user != null)
         {
-            // Delete existing user to recreate
             await userManager.DeleteAsync(user);
         }
         

@@ -41,17 +41,14 @@ public class OrdersController : Controller
         _userManager = userManager;
     }
 
-    // GET: Orders
     [Microsoft.AspNetCore.Authorization.Authorize]
     public async Task<IActionResult> Index()
     {
-        // Get userId from authentication
         string userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
 
         var query = new GetUserOrdersQuery { UserId = userId };
         var orders = await _mediator.Send(query);
 
-        // Check if user is on Macedonian site and convert prices to MKD
         var isMacedonianSite = CultureInfo.CurrentUICulture.Name.StartsWith("mk", StringComparison.OrdinalIgnoreCase);
         ViewBag.IsMacedonianSite = isMacedonianSite;
 
@@ -60,7 +57,6 @@ public class OrdersController : Controller
             var convertedPrices = new Dictionary<int, decimal>();
             foreach (var order in orders)
             {
-                // Assuming orders are in USD
                 var mkdPrice = await _currencyService.ConvertAsync(order.TotalAmount, "USD", "MKD");
                 convertedPrices[order.Id] = mkdPrice;
             }
@@ -70,7 +66,6 @@ public class OrdersController : Controller
         return View(orders);
     }
 
-    // GET: Orders/Create
     [Microsoft.AspNetCore.Authorization.Authorize]
     public async Task<IActionResult> Create(int listingId)
     {
@@ -91,7 +86,6 @@ public class OrdersController : Controller
             ShippingCountry = user?.Country ?? "North Macedonia"
         };
 
-        // Check if user is on Macedonian site and convert price to MKD
         var isMacedonianSite = CultureInfo.CurrentUICulture.Name.StartsWith("mk", StringComparison.OrdinalIgnoreCase);
         if (isMacedonianSite && !string.Equals(listing.Currency, "MKD", StringComparison.OrdinalIgnoreCase))
         {
@@ -102,7 +96,6 @@ public class OrdersController : Controller
         return View(viewModel);
     }
 
-    // POST: Orders/Create
     [HttpPost]
     [Microsoft.AspNetCore.Authorization.Authorize]
     [ValidateAntiForgeryToken]
@@ -131,7 +124,6 @@ public class OrdersController : Controller
             return RedirectToAction(nameof(Details), new { id = order.Id });
         }
 
-        // Reload listing if validation fails
         var listingQuery = new GetListingByIdQuery { Id = viewModel.ListingId };
         viewModel.Listing = await _mediator.Send(listingQuery);
 
@@ -139,7 +131,6 @@ public class OrdersController : Controller
     }
 
 
-    // GET: Orders/Details/5
     public async Task<IActionResult> Details(int id)
     {
         var query = new GetOrderByIdQuery { Id = id };
@@ -150,16 +141,13 @@ public class OrdersController : Controller
             return NotFound();
         }
 
-        // Check if user is on Macedonian site and convert prices to MKD
         var isMacedonianSite = CultureInfo.CurrentUICulture.Name.StartsWith("mk", StringComparison.OrdinalIgnoreCase);
         ViewBag.IsMacedonianSite = isMacedonianSite;
 
         if (isMacedonianSite)
         {
-            // Convert total amount
             ViewBag.ConvertedTotal = await _currencyService.ConvertAsync(order.TotalAmount, "USD", "MKD");
 
-            // Convert order items prices
             var convertedItems = new Dictionary<int, (decimal UnitPrice, decimal Subtotal)>();
             foreach (var item in order.OrderItems)
             {

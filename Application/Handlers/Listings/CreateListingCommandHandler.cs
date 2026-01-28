@@ -28,11 +28,6 @@ public class CreateListingCommandHandler : IRequestHandler<CreateListingCommand,
         await _unitOfWork.Listings.AddAsync(listing);
         await _unitOfWork.SaveChangesAsync();
 
-        // Send email notification
-        // Note: User email would be retrieved from IdentityUser in production
-        // For now, email notification is skipped as we're using IdentityUser
-
-        // Reload with navigation properties
         var createdListing = await _unitOfWork.Listings.GetByIdAsync(listing.Id);
         if (createdListing == null)
             throw new InvalidOperationException("Failed to create listing");

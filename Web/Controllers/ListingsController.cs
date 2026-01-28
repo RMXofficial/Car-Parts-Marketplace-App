@@ -31,7 +31,6 @@ public class ListingsController : Controller
         _currencyService = currencyService;
     }
 
-    // GET: Listings
     [Authorize]
     public async Task<IActionResult> Index(string? category, string? listingType)
     {
@@ -52,11 +51,9 @@ public class ListingsController : Controller
 
         var listings = await _mediator.Send(query);
 
-        // Detect user's currency
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
         var userCurrency = await _geolocationService.GetCurrencyCodeAsync(ipAddress ?? "");
 
-        // Convert prices for each listing
         var listingViewModels = new List<ListingIndexItemViewModel>();
         foreach (var listing in listings)
         {
@@ -82,7 +79,6 @@ public class ListingsController : Controller
         return View(listingViewModels);
     }
 
-    // GET: Listings/Details/5
     public async Task<IActionResult> Details(int id)
     {
         var query = new GetListingByIdQuery { Id = id };
@@ -93,26 +89,17 @@ public class ListingsController : Controller
             return NotFound();
         }
 
-        // Detect user's currency
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
         var userCurrency = await _geolocationService.GetCurrencyCodeAsync(ipAddress ?? "");
-        
-        // Convert price if different
-        // Reusing PriceTransformationResult structure but populating it manually for now
-        // leveraging the logic we have in CarPricingService might be better if we want Tax calculation
-        // But the user asked for currency conversion specifically.
-        
+
         var convertedPrice = await _currencyService.ConvertAsync(listing.Price, listing.Currency, userCurrency);
 
-        // Get price transformation (Legacy logic kept for reference, but updated to use new service results)
-        // We act like the Listing Price is the Original Price
-        
         var priceTransformation = new PriceTransformationDto
         {
             OriginalPrice = listing.Price,
-            ExchangeRate = convertedPrice / (listing.Price == 0 ? 1 : listing.Price), // Approximate rate
-            PriceInMKD = convertedPrice, // This property name is legacy specific to MKD, but we use it as "Converted Price"
-            TaxAmount = 0, // Tax logic might need revisit
+            ExchangeRate = convertedPrice / (listing.Price == 0 ? 1 : listing.Price),
+            PriceInMKD = convertedPrice,
+            TaxAmount = 0,
             TotalPriceWithTax = convertedPrice,
             Currency = userCurrency
         };
@@ -126,7 +113,6 @@ public class ListingsController : Controller
         return View(viewModel);
     }
 
-    // GET: Listings/Create
     [Microsoft.AspNetCore.Authorization.Authorize]
     public async Task<IActionResult> Create()
     {
@@ -141,7 +127,6 @@ public class ListingsController : Controller
         return View(model);
     }
 
-    // POST: Listings/Create
     [HttpPost]
     [Microsoft.AspNetCore.Authorization.Authorize]
     [ValidateAntiForgeryToken]
@@ -149,7 +134,6 @@ public class ListingsController : Controller
     {
         if (ModelState.IsValid)
         {
-            // Get userId from authentication
             listingDto.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
 
             var command = new CreateListingCommand { Listing = listingDto };
@@ -160,7 +144,6 @@ public class ListingsController : Controller
         return View(listingDto);
     }
 
-    // GET: Listings/Edit/5
     [Authorize]
     public async Task<IActionResult> Edit(int id)
     {
@@ -195,14 +178,11 @@ public class ListingsController : Controller
         return View(editDto);
     }
 
-    // POST: Listings/Edit/5
     [HttpPost]
     [Authorize]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, CreateListingDto listingDto)
     {
-        // Validation is handled by ModelState
-
         if (ModelState.IsValid)
         {
             try
@@ -238,7 +218,6 @@ public class ListingsController : Controller
         return View(listingDto);
     }
 
-    // GET: Listings/Delete/5
     [Authorize]
     public async Task<IActionResult> Delete(int id)
     {
@@ -256,11 +235,9 @@ public class ListingsController : Controller
             return Forbid();
         }
 
-        // Detect user's currency
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
         var userCurrency = await _geolocationService.GetCurrencyCodeAsync(ipAddress ?? "");
 
-        // Convert price if different
         var convertedPrice = await _currencyService.ConvertAsync(listing.Price, listing.Currency, userCurrency);
 
         var priceTransformation = new PriceTransformationDto
@@ -282,7 +259,6 @@ public class ListingsController : Controller
         return View(viewModel);
     }
 
-    // POST: Listings/Delete/5
     [HttpPost, ActionName("Delete")]
     [Authorize]
     [ValidateAntiForgeryToken]

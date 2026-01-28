@@ -10,7 +10,6 @@ public class UnitOfWork : IUnitOfWork
 {
     private readonly ApplicationDbContext _context;
     private IDbContextTransaction? _transaction;
-    // private IRepository<User>? _users; // Using IdentityUser instead
     private IRepository<Listing>? _listings;
     private IRepository<Order>? _orders;
     private IRepository<OrderItem>? _orderItems;
@@ -20,15 +19,6 @@ public class UnitOfWork : IUnitOfWork
     {
         _context = context;
     }
-
-    // Using IdentityUser instead of custom User entity
-    // public IRepository<User> Users
-    // {
-    //     get
-    //     {
-    //         return _users ??= new Repository<User>(_context);
-    //     }
-    // }
 
     public IRepository<Listing> Listings
     {
@@ -64,7 +54,6 @@ public class UnitOfWork : IUnitOfWork
 
     public async Task<int> SaveChangesAsync()
     {
-        // Enable foreign keys for SQLite before saving
         if (_context.Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
         {
             await _context.Database.ExecuteSqlRawAsync("PRAGMA foreign_keys = ON;");

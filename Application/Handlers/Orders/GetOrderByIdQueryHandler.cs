@@ -23,7 +23,6 @@ public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, Order
 
     public async Task<OrderDto?> Handle(GetOrderByIdQuery request, CancellationToken cancellationToken)
     {
-        // Load order with OrderItems and their Listings
         var order = await _context.Orders
             .Include(o => o.OrderItems)
             .ThenInclude(oi => oi.Listing)

@@ -44,7 +44,6 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult DetectLocation()
     {
-        // Delete the culture cookie so geolocation middleware will re-detect
         Response.Cookies.Delete(CookieRequestCultureProvider.DefaultCookieName);
         return RedirectToAction("Index");
     }
@@ -60,7 +59,6 @@ public class HomeController : Controller
 
         var listings = await _mediator.Send(query);
 
-        // Filter by search term if provided
         if (!string.IsNullOrEmpty(searchTerm))
         {
             listings = listings.Where(l =>
@@ -71,14 +69,12 @@ public class HomeController : Controller
             );
         }
 
-        // Materialize the list before processing
         var listingsList = listings.ToList();
 
         ViewBag.SearchTerm = searchTerm;
         ViewBag.Category = category;
         ViewBag.ListingType = listingType;
 
-        // Check if user is on Macedonian site and convert prices to MKD
         var isMacedonianSite = CultureInfo.CurrentUICulture.Name.StartsWith("mk", StringComparison.OrdinalIgnoreCase);
         ViewBag.IsMacedonianSite = isMacedonianSite;
 

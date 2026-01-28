@@ -6,6 +6,5 @@ public class Category
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
 
-    // Navigation properties
     public ICollection<Listing> Listings { get; set; } = new List<Listing>();
 }

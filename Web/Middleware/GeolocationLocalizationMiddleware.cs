@@ -25,7 +25,6 @@ public class GeolocationLocalizationMiddleware
         {
             try
             {
-                // Get real client IP from X-Forwarded-For header (for proxies like Railway)
                 var ip = context.Request.Headers["X-Forwarded-For"].FirstOrDefault()?.Split(',').FirstOrDefault()?.Trim()
                          ?? context.Connection.RemoteIpAddress?.ToString();
                 _logger.LogInformation("Geolocation Middleware - IP: {IP} (X-Forwarded-For: {XFF})",
@@ -35,13 +34,11 @@ public class GeolocationLocalizationMiddleware
                 var countryCode = await geoService.GetCountryCodeAsync(ip ?? "");
                 _logger.LogInformation("Geolocation Middleware - Country: {Country}", countryCode);
 
-                // Macedonia -> mk-MK (Macedonian site), otherwise -> en-US (English)
                 var culture = string.Equals(countryCode, "MK", StringComparison.OrdinalIgnoreCase) ? "mk-MK" : "en-US";
                 _logger.LogInformation("Geolocation Middleware - Setting culture: {Culture}", culture);
 
                 var requestCulture = new RequestCulture(culture);
 
-                // Apply to current request so this page load uses it (not only the next one)
                 var feature = new RequestCultureFeature(requestCulture, null);
                 context.Features.Set<IRequestCultureFeature>(feature);
 

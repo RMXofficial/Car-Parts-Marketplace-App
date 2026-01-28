@@ -12,7 +12,6 @@ public class CreateOrderViewModel
     public string? ShippingPostalCode { get; set; }
     public string? ShippingCountry { get; set; } = "North Macedonia";
 
-    // Currency conversion for display
     public decimal? ConvertedPrice { get; set; }
     public string? ConvertedCurrency { get; set; }
 }

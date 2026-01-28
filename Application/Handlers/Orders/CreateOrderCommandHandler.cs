@@ -64,17 +64,12 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Ord
         await _unitOfWork.Orders.AddAsync(order);
         await _unitOfWork.SaveChangesAsync();
 
-        // Mark purchased listings as inactive
         foreach (var listing in listingsToDeactivate)
         {
             listing.IsActive = false;
             await _unitOfWork.Listings.UpdateAsync(listing);
         }
         await _unitOfWork.SaveChangesAsync();
-
-        // Send order confirmation email
-        // Note: User email would be retrieved from IdentityUser in production
-        // For now, email notification is skipped as we're using IdentityUser
 
         var createdOrder = await _unitOfWork.Orders.GetByIdAsync(order.Id);
         if (createdOrder == null)
