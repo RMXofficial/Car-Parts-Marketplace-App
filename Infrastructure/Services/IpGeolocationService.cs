@@ -47,15 +47,24 @@ public class IpGeolocationService : IGeolocationService
             if (string.IsNullOrEmpty(ipAddress) || ipAddress == "::1" || ipAddress == "127.0.0.1")
             {
                 // Localhost - The API call from the server will return the Server's location.
-                // In development, this is fine. 
+                // In development, this is fine.
                  url = $"{BaseUrl}?apiKey={apiKey}";
             }
             else
             {
                  url = $"{BaseUrl}?apiKey={apiKey}&ip={ipAddress}";
             }
-            
-            return await _httpClient.GetFromJsonAsync<IpGeolocationResponse>(url);
+
+            _logger.LogInformation("Calling geolocation API: {Url}", url.Replace(apiKey, "***"));
+
+            var response = await _httpClient.GetFromJsonAsync<IpGeolocationResponse>(url);
+
+            _logger.LogInformation("Geolocation API response for IP {IP}: CountryCode={CountryCode}, Currency={Currency}",
+                ipAddress,
+                response?.CountryCode2 ?? "(null)",
+                response?.Currency?.Code ?? "(null)");
+
+            return response;
         }
         catch (Exception ex)
         {
